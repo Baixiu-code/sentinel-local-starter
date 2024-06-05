@@ -1,31 +1,28 @@
 package com.baixiu.middleware.sentinel.local.service;
 
 import com.baixiu.middleware.sentinel.local.api.SentinelLocalService;
-import com.baixiu.middleware.sentinel.local.cache.CaffeineCache;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import com.baixiu.middleware.cache.local.cache.CaffeineCache;
+import com.baixiu.middleware.sentinel.local.util.SpringContextUtil;
 import org.springframework.stereotype.Component;
-import javax.annotation.Resource;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * caffeine sentinel
+ * caffeine sentinel service
  * @author baixiu
  * @date 创建时间 2024/6/4 2:03 PM
  */
 @Component
-public class CaffeineSentinelLocalService implements SentinelLocalService , ApplicationContextAware {
+public class CaffeineSentinelLocalService implements SentinelLocalService {
     
-    private CaffeineCache limitCaffeineCache;
     
     @Override
     public boolean isLimitByKey(String key) {
-        Long count =(Long) limitCaffeineCache.getByLoadCache (key);
-        return count>0L;
+        CaffeineCache limitCaffeineCache=SpringContextUtil.getBeanByName ("limitCaffeineCache");
+        AtomicLong count =(AtomicLong) limitCaffeineCache.getByLoadCache(key);
+        count.incrementAndGet ();
+        System.out.println ("isLimitByKey:"+key+"count:"+count.longValue());
+        return count.longValue ()>0L;
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        //limitCaffeineCache=(CaffeineCache)applicationContext.getBean ("limitCaffeineCache");
-    }
 }
